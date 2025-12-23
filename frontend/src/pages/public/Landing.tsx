@@ -14,7 +14,20 @@ export default function Landing() {
           <Gift className="w-6 h-6 text-red-600" />
           <span className="text-xl font-bold text-gray-900">INAANAK</span>
         </div>
-        <div>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate("/ninong/login")}
+            className="text-sm font-medium text-gray-700 transition-colors hover:text-gray-900"
+          >
+            Ninong Login
+          </button>
+          <button
+            onClick={() => navigate("/ninong/register")}
+            className="text-sm font-medium text-gray-700 transition-colors hover:text-gray-900"
+          >
+            Ninong Register
+          </button>
+          <span className="w-px h-5 bg-gray-300" />
           <button
             onClick={() => navigate("/admin/dashboard")}
             className="text-sm font-medium text-gray-700 transition-colors hover:text-gray-900"
@@ -97,6 +110,30 @@ export default function Landing() {
               className="px-8 py-3 font-semibold text-gray-900 transition-all border-2 border-gray-300 rounded-full hover:bg-gray-50"
             >
               Check Status
+            </button>
+            <button
+              onClick={() => navigate("/ninong/dashboard")}
+              className="px-8 py-3 font-semibold text-white transition-all rounded-full shadow-lg bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:shadow-xl"
+            >
+              Ninong Dashboard
+            </button>
+          </div>
+
+          {/* Ninong Quick Access */}
+          <div className="pt-6 text-sm text-gray-700">
+            Are you a Ninong?{" "}
+            <button
+              onClick={() => navigate("/ninong/login")}
+              className="font-semibold text-red-600 hover:text-red-700"
+            >
+              Login
+            </button>{" "}
+            or{" "}
+            <button
+              onClick={() => navigate("/ninong/register")}
+              className="font-semibold text-green-700 hover:text-green-800"
+            >
+              Register
             </button>
           </div>
 

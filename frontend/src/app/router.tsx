@@ -11,6 +11,13 @@ import AdminDashboard from "../pages/admin/Dashboard";
 import InaanakDetails from "../pages/admin/InaanakDetails";
 import { ProtectedRoute } from "./ProtectedRoute";
 import NotFound from "../pages/public/NotFound";
+import NinongLogin from "../pages/ninong/Login";
+import NinongRegister from "../pages/ninong/Register";
+import NinongDashboard from "../pages/ninong/Dashboard";
+import NinongInvites from "../pages/ninong/Invites";
+import NinongRegistrations from "../pages/ninong/Registrations";
+import NinongVerified from "../pages/ninong/Verified";
+import NinongVerifyCode from "../pages/ninong/VerifyCode";
 
 const routes = [
   {
@@ -44,6 +51,50 @@ const routes = [
   {
     path: "/admin/login",
     element: <AdminLogin />,
+  },
+  {
+    path: "/ninong/login",
+    element: <NinongLogin />,
+  },
+  {
+    path: "/ninong/register",
+    element: <NinongRegister />,
+  },
+  {
+    path: "/ninong/verified",
+    element: <NinongVerified />,
+  },
+  {
+    path: "/ninong/verify",
+    element: (
+      <ProtectedRoute requiredRole="ninong">
+        <NinongVerifyCode />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/ninong/dashboard",
+    element: (
+      <ProtectedRoute requiredRole="ninong">
+        <NinongDashboard />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/ninong/invites",
+    element: (
+      <ProtectedRoute requiredRole="ninong">
+        <NinongInvites />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/ninong/registrations",
+    element: (
+      <ProtectedRoute requiredRole="ninong">
+        <NinongRegistrations />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/dashboard",

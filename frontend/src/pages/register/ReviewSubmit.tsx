@@ -41,6 +41,7 @@ export default function ReviewSubmit() {
         inaanak_name: inaanak.inaanakName,
         inaanak_birthdate: inaanak.birthDate,
         relationship: inaanak.relationship,
+        ninong_code: guardian.ninongCode,
         live_photo: uploads.livePhoto || undefined,
         video: uploads.video || undefined,
         qr_code: uploads.qrCode || undefined,
@@ -117,6 +118,14 @@ export default function ReviewSubmit() {
                     {guardian.address || "—"}
                   </p>
                 </div>
+                {guardian.ninongCode ? (
+                  <div className="md:col-span-2">
+                    <p className="mb-1 text-sm text-gray-600">Ninong Code</p>
+                    <p className="font-semibold text-gray-900">
+                      {guardian.ninongCode}
+                    </p>
+                  </div>
+                ) : null}
               </div>
               <button
                 onClick={() => navigate("/register/guardian-info")}

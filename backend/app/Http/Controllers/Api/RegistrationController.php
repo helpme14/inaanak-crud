@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\Guardian;
 use App\Models\Registration;
+use App\Models\NinongInvite;
 use App\Notifications\RegistrationSubmitted;
 use App\Notifications\RegistrationStatusUpdated;
 use Illuminate\Http\Request;
@@ -39,17 +40,20 @@ class RegistrationController extends Controller
 
         // Get the authenticated user from Sanctum
         $user = $request->user();
-        
+
         // Check if user is Admin (has admin ability or is Admin model)
         $isAdmin = $user && (
             $user instanceof Admin || 
             ($user->tokenCan('admin'))
         );
-        
+
         // Check if user is the guardian owner
         $isGuardianOwner = $user && $user instanceof Guardian && $registration->guardian_id === $user->id;
 
-        if (!$isAdmin && !$isGuardianOwner) {
+        // Check if user is the associated Ninong
+        $isNinongOwner = $user && method_exists($user, 'getKey') && $registration->ninong_id === $user->getKey();
+
+        if (!$isAdmin && !$isGuardianOwner && !$isNinongOwner) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized'
@@ -78,6 +82,8 @@ class RegistrationController extends Controller
             'inaanak_name' => 'required|string|max:255',
             'inaanak_birthdate' => 'required|date',
             'relationship' => 'required|string|max:255',
+            // Ninong code (required)
+            'ninong_code' => 'required|string|max:50',
             // Files - Just check they exist and are under size limit
             'live_photo' => 'nullable|file|max:10240',
             'video' => 'nullable|file|max:102400',
@@ -147,9 +153,29 @@ class RegistrationController extends Controller
             $qrCodePath = $request->file('qr_code')->store('registrations/qr_codes', 'local');
         }
 
+        // Validate and associate Ninong via invite code
+        $invite = NinongInvite::where('code', $validated['ninong_code'])->first();
+        if (!$invite) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid Ninong code.',
+                'errors' => ['ninong_code' => ['The provided code is invalid.']]
+            ], 422);
+        }
+        if (($invite->usage_limit !== null && $invite->used_count >= $invite->usage_limit) || ($invite->expires_at && now()->gte($invite->expires_at))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ninong code is no longer valid.',
+                'errors' => ['ninong_code' => ['The provided code has expired or reached its usage limit.']]
+            ], 422);
+        }
+        $ninongId = $invite->ninong_id;
+        $invite->increment('used_count');
+
         $registration = Registration::create([
             'reference_number' => Registration::generateReferenceNumber(),
             'guardian_id' => $guardian->id,
+            'ninong_id' => $ninongId,
             'inaanak_name' => $validated['inaanak_name'],
             'inaanak_birthdate' => $validated['inaanak_birthdate'],
             'relationship' => $validated['relationship'],
@@ -227,7 +253,10 @@ class RegistrationController extends Controller
         // Check if user is the guardian owner
         $isGuardianOwner = $user && $user instanceof Guardian && $registration->guardian_id === $user->id;
 
-        if (!$isAdmin && !$isGuardianOwner) {
+        // Check if user is the associated Ninong
+        $isNinongOwner = $user && method_exists($user, 'getKey') && $registration->ninong_id === $user->getKey();
+
+        if (!$isAdmin && !$isGuardianOwner && !$isNinongOwner) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized'

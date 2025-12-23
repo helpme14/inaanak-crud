@@ -17,6 +17,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\IsAdmin::class,
             'auth' => \App\Http\Middleware\Authenticate::class,
+            'ninong' => \App\Http\Middleware\IsNinong::class,
+            'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         ]);
         
         // Enable CORS for API requests

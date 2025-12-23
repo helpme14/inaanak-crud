@@ -12,6 +12,7 @@ class Registration extends Model
     protected $fillable = [
         'reference_number',
         'guardian_id',
+        'ninong_id',
         'inaanak_name',
         'inaanak_birthdate',
         'relationship',
@@ -29,6 +30,11 @@ class Registration extends Model
     public function guardian()
     {
         return $this->belongsTo(Guardian::class);
+    }
+
+    public function ninong()
+    {
+        return $this->belongsTo(Ninong::class);
     }
 
     public static function generateReferenceNumber()

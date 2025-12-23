@@ -8,6 +8,7 @@ export interface RegistrationData {
   inaanak_name: string;
   inaanak_birthdate: string;
   relationship: string;
+  ninong_code: string;
   live_photo?: File;
   video?: File;
   qr_code?: File;
@@ -46,6 +47,7 @@ class RegistrationService {
     formData.append("inaanak_name", data.inaanak_name);
     formData.append("inaanak_birthdate", data.inaanak_birthdate);
     formData.append("relationship", data.relationship);
+    formData.append("ninong_code", data.ninong_code);
 
     if (data.live_photo) {
       formData.append("live_photo", data.live_photo);

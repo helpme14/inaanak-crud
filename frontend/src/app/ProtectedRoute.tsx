@@ -3,7 +3,7 @@ import authService from "../services/auth.service";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: "admin" | "guardian";
+  requiredRole?: "admin" | "guardian" | "ninong";
 }
 
 export function ProtectedRoute({
@@ -22,6 +22,11 @@ export function ProtectedRoute({
 
   if (requiredRole === "guardian" && !authService.isGuardian()) {
     return <Navigate to="/" replace />;
+  }
+
+  if (requiredRole === "ninong") {
+    const isNinong = localStorage.getItem("user_type") === "ninong";
+    if (!isNinong) return <Navigate to="/ninong/login" replace />;
   }
 
   return <>{children}</>;

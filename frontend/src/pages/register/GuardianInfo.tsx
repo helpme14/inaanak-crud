@@ -14,18 +14,21 @@ export default function GuardianInfo() {
     email: "",
     contactNumber: "",
     address: "",
+    ninongCode: "",
   });
   const [errors, setErrors] = useState({
     guardianName: false,
     email: false,
     contactNumber: false,
     address: false,
+    ninongCode: false,
   });
   const [shake, setShake] = useState({
     guardianName: false,
     email: false,
     contactNumber: false,
     address: false,
+    ninongCode: false,
   });
 
   const handleChange = (
@@ -42,6 +45,7 @@ export default function GuardianInfo() {
       email: !formData.email.trim(),
       contactNumber: !formData.contactNumber.trim(),
       address: !formData.address.trim(),
+      ninongCode: !formData.ninongCode.trim(),
     };
     setErrors(nextErrors);
 
@@ -144,6 +148,35 @@ export default function GuardianInfo() {
                 {errors.email
                   ? "This field is required"
                   : "We'll send a verification link here"}
+              </p>
+            </div>
+
+            {/* Ninong Code (Required) */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">
+                Ninong Code *
+              </label>
+              <input
+                type="text"
+                name="ninongCode"
+                value={formData.ninongCode}
+                onChange={handleChange}
+                placeholder="Enter code provided by your Ninong"
+                className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-all bg-white text-gray-900 placeholder-gray-500 ${
+                  errors.ninongCode
+                    ? "border-red-500 ring-2 ring-red-200"
+                    : "border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200"
+                } ${shake.ninongCode ? "animate-shake" : ""}`}
+                aria-invalid={errors.ninongCode}
+              />
+              <p
+                className={`text-xs mt-1 ${
+                  errors.ninongCode ? "text-red-600" : "text-gray-500"
+                }`}
+              >
+                {errors.ninongCode
+                  ? "Ninong code is required"
+                  : "Enter the code provided by your Ninong so your registration appears on their dashboard."}
               </p>
             </div>
 

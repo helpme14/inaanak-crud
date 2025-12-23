@@ -34,16 +34,25 @@ api.interceptors.response.use(
       const url = error.config?.url || "";
       const path = typeof url === "string" ? url : "";
       const isAuthEndpoint =
-        /\/admin\/login|\/guardian\/login|\/guardian\/register/.test(path);
+        /\/admin\/login|\/guardian\/login|\/guardian\/register|\/ninong\/login|\/ninong\/register/.test(
+          path
+        );
       const isOnLoginPage =
         typeof window !== "undefined" &&
         window.location?.pathname === "/admin/login";
 
       // Do not auto-redirect on 401 for auth endpoints or when already on login page
       if (!isAuthEndpoint && !isOnLoginPage) {
+        const userType = localStorage.getItem("user_type");
         localStorage.removeItem("auth_token");
         localStorage.removeItem("user");
-        window.location.href = "/admin/login";
+        if (userType === "ninong" || /\/ninong\//.test(path)) {
+          window.location.href = "/ninong/login";
+        } else if (userType === "guardian") {
+          window.location.href = "/";
+        } else {
+          window.location.href = "/admin/login";
+        }
       }
     }
 
@@ -51,7 +60,9 @@ api.interceptors.response.use(
       const url = error.config?.url || "";
       const path = typeof url === "string" ? url : "";
       const isAuthEndpoint =
-        /\/admin\/login|\/guardian\/login|\/guardian\/register/.test(path);
+        /\/admin\/login|\/guardian\/login|\/guardian\/register|\/ninong\/login|\/ninong\/register/.test(
+          path
+        );
       const isOnLoginPage =
         typeof window !== "undefined" &&
         window.location?.pathname === "/admin/login";
@@ -60,7 +71,11 @@ api.interceptors.response.use(
         localStorage.removeItem("auth_token");
         localStorage.removeItem("user");
         localStorage.removeItem("user_type");
-        window.location.href = "/admin/login";
+        if (/\/ninong\//.test(path)) {
+          window.location.href = "/ninong/login";
+        } else {
+          window.location.href = "/admin/login";
+        }
       }
     }
     return Promise.reject(error);
