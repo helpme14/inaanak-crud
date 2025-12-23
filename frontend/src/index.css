@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes shake {
+  10%,
+  90% {
+    transform: translateX(-1px);
+  }
+  20%,
+  80% {
+    transform: translateX(2px);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translateX(-4px);
+  }
+  40%,
+  60% {
+    transform: translateX(4px);
+  }
+}
+
+.animate-shake {
+  animation: shake 0.35s ease-in-out;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #ffffff;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+@keyframes toast-enter {
+  0% {
+    opacity: 0;
+    transform: translateX(400px) translateY(-100px);
+  }
+  5% {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
+  }
+  95% {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(400px) translateY(-100px);
+  }
+}
+
+@layer utilities {
+  .animate-toast-enter {
+    animation: toast-enter 15s ease-in-out forwards !important;
+  }
+
+  .animate-toast-error {
+    animation: toast-enter 15s ease-in-out forwards !important;
+  }
+
+  .animate-toast-default {
+    animation: toast-enter 12s ease-in-out forwards !important;
+  }
+}
