@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Eye } from "lucide-react";
 import api from "../../lib/axios";
-import { StatusBadge } from "../../components/feedback/StatusBadge";
+
 import { NinongDetailsModal } from "../../components/ninong/NinongDetailsModal";
 
 import { AxiosError } from "axios";
@@ -46,8 +46,8 @@ export default function NinongRegistrations() {
   const [error, setError] = useState<string | null>(null);
   const [modalId, setModalId] = useState<number | null>(null);
   const [modalData, setModalData] = useState<RegistrationDetails | null>(null);
-  const [modalLoading, setModalLoading] = useState(false);
-  const [modalError, setModalError] = useState<string | null>(null);
+  const [, setModalLoading] = useState(false);
+  const [, setModalError] = useState<string | null>(null);
 
   const load = async () => {
     try {

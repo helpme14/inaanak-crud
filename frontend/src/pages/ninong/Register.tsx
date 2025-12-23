@@ -21,7 +21,7 @@ export default function NinongRegister() {
     setLoading(true);
     setError(null);
     try {
-      const res = await ninongService.register({
+      await ninongService.register({
         name,
         email,
         password,

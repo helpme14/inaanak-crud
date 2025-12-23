@@ -39,7 +39,7 @@ export default function NinongInvites() {
     e.preventDefault();
     setError(null);
     try {
-      const res = await api.post("/ninong/invites", {
+      await api.post("/ninong/invites", {
         usage_limit: limit === "" ? null : Number(limit),
         expires_at: expiresAt || null,
       });
