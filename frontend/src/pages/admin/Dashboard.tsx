@@ -9,11 +9,7 @@ import registrationService, {
 } from "../../services/registration.service";
 import authService from "../../services/auth.service";
 
-interface PreviewModal {
-  isOpen: boolean;
-  type: "photo" | "video" | "qr" | null;
-  registrationId: number | null;
-}
+// removed unused PreviewModal interface
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
