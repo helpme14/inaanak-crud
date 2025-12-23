@@ -1,6 +1,7 @@
 "use client";
 
 import { useNavigate, useParams } from "react-router-dom";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 import { useEffect, useState } from "react";
 import {
   ArrowLeft,
@@ -61,7 +62,7 @@ export default function InaanakDetails() {
         setLoading(true);
         // Use the admin endpoint with full backend URL
         const response = await fetch(
-          `http://localhost:8000/api/admin/registrations/${id}`,
+          `${API_BASE_URL}/admin/registrations/${id}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
@@ -96,7 +97,7 @@ export default function InaanakDetails() {
     if (!registration) return;
 
     try {
-      const fileUrl = `http://localhost:8000/api/admin/registrations/${registration.id}/download/${fileType}`;
+      const fileUrl = `${API_BASE_URL}/admin/registrations/${registration.id}/download/${fileType}`;
       const response = await fetch(fileUrl, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
@@ -124,7 +125,7 @@ export default function InaanakDetails() {
 
     try {
       setIsDownloading(fileType);
-      const fileUrl = `http://localhost:8000/api/admin/registrations/${registration.id}/download/${fileType}`;
+      const fileUrl = `${API_BASE_URL}/admin/registrations/${registration.id}/download/${fileType}`;
 
       // Fetch and download using the API endpoint
       const response = await fetch(fileUrl, {
