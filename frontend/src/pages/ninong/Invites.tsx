@@ -17,6 +17,7 @@ export default function NinongInvites() {
   const [limit, setLimit] = useState<number | "">("");
   const [expiresAt, setExpiresAt] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
+  const [, setIsVerified] = useState(true);
 
   const load = async () => {
     try {
@@ -32,8 +33,17 @@ export default function NinongInvites() {
   };
 
   useEffect(() => {
-    load();
-  }, []);
+    // Check if user is verified
+    const user = localStorage.getItem("user");
+    const verified = user ? JSON.parse(user)?.email_verified_at : null;
+    setIsVerified(!!verified);
+
+    if (verified) {
+      load();
+    } else {
+      navigate("/ninong/dashboard", { replace: true });
+    }
+  }, [navigate]);
 
   const createInvite = async (e: React.FormEvent) => {
     e.preventDefault();

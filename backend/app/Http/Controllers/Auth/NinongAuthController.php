@@ -39,9 +39,6 @@ class NinongAuthController extends Controller
             ])->save();
             $ninong->notify(new NinongVerifyCode($code));
 
-            // Also send link-based verification as fallback
-            $ninong->sendEmailVerificationNotification();
-
             DB::commit();
 
             return response()->json([

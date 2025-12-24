@@ -48,6 +48,7 @@ export default function NinongRegistrations() {
   const [modalData, setModalData] = useState<RegistrationDetails | null>(null);
   const [, setModalLoading] = useState(false);
   const [, setModalError] = useState<string | null>(null);
+  const [, setIsVerified] = useState(true);
 
   const load = async () => {
     try {
@@ -74,8 +75,17 @@ export default function NinongRegistrations() {
   };
 
   useEffect(() => {
-    load();
-  }, []);
+    // Check if user is verified
+    const user = localStorage.getItem("user");
+    const verified = user ? JSON.parse(user)?.email_verified_at : null;
+    setIsVerified(!!verified);
+
+    if (verified) {
+      load();
+    } else {
+      navigate("/ninong/dashboard", { replace: true });
+    }
+  }, [navigate]);
 
   const openModal = async (id: number) => {
     setModalId(id);

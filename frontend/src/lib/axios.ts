@@ -67,7 +67,20 @@ api.interceptors.response.use(
         typeof window !== "undefined" &&
         window.location?.pathname === "/admin/login";
 
-      if (!isAuthEndpoint && !isOnLoginPage) {
+      // Don't logout on 403 for ninong verification routes - they need auth but not verified
+      const isUnverifiedNinongRoute = /\/ninong\/(invites|registrations)/.test(
+        path
+      );
+      const user = localStorage.getItem("user");
+      const isEmailUnverified = user
+        ? !JSON.parse(user)?.email_verified_at
+        : false;
+
+      if (
+        !isAuthEndpoint &&
+        !isOnLoginPage &&
+        !(isUnverifiedNinongRoute && isEmailUnverified)
+      ) {
         localStorage.removeItem("auth_token");
         localStorage.removeItem("user");
         localStorage.removeItem("user_type");
