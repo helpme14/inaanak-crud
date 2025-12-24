@@ -56,7 +56,13 @@ class AdminAuthController extends Controller
             ], 422);
         }
 
-        if (Auth::guard('admin')->attempt($validated)) {
+        // Only use email and password for authentication attempt to avoid accidental SQL queries
+        $credentials = [
+            'email' => filter_var(trim($validated['email']), FILTER_SANITIZE_EMAIL),
+            'password' => $validated['password'],
+        ];
+
+        if (Auth::guard('admin')->attempt($credentials)) {
             $admin = Auth::guard('admin')->user();
             // Create Sanctum token with explicit 'admin' ability
             $token = $admin->createToken('admin-token', ['admin'])->plainTextToken;
@@ -88,9 +94,13 @@ class AdminAuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
         ]);
 
+        // Sanitize inputs to avoid stored XSS and ensure safe email
+        $safeName = strip_tags(trim($validated['name']));
+        $safeEmail = filter_var(trim($validated['email']), FILTER_SANITIZE_EMAIL);
+
         $admin = Admin::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
+            'name' => $safeName,
+            'email' => $safeEmail,
             'password' => Hash::make($validated['password']),
         ]);
 

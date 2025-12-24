@@ -60,6 +60,15 @@ export default function AdminLogin() {
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message || "Invalid email or password";
+      // If the error is due to reCAPTCHA verification, reset the widget so user can re-solve
+      if (errorMessage && /recaptcha|reCAPTCHA/i.test(errorMessage)) {
+        try {
+          if (widgetIdRef.current !== null && window.grecaptcha?.reset) {
+            window.grecaptcha.reset(widgetIdRef.current);
+          }
+        } catch (_) {}
+        setCaptchaToken(null);
+      }
       addToast(errorMessage, "error", 15000);
     } finally {
       setLoading(false);

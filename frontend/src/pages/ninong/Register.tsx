@@ -60,7 +60,16 @@ export default function NinongRegister() {
       });
       navigate("/ninong/dashboard", { replace: true });
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Registration failed");
+      const msg = err?.response?.data?.message || "Registration failed";
+      if (msg && /recaptcha|reCAPTCHA/i.test(msg)) {
+        try {
+          if (widgetIdRef.current !== null && window.grecaptcha?.reset) {
+            window.grecaptcha.reset(widgetIdRef.current);
+          }
+        } catch (_) {}
+        setCaptchaToken(null);
+      }
+      setError(msg);
     } finally {
       setLoading(false);
     }

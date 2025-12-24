@@ -11,8 +11,9 @@ use App\Http\Controllers\Api\CheckStatusController;
 use App\Http\Controllers\Api\NinongInviteController;
 
 // Guardian Authentication Routes (Public)
-Route::post('/guardian/register', [GuardianAuthController::class, 'register']);
-Route::post('/guardian/login', [GuardianAuthController::class, 'login']);
+// Throttle public auth endpoints to mitigate brute-force and abuse
+Route::post('/guardian/register', [GuardianAuthController::class, 'register'])->middleware('throttle:5,1');
+Route::post('/guardian/login', [GuardianAuthController::class, 'login'])->middleware('throttle:10,1');
 
 // Ninong Authentication Routes (Public)
 // Add throttling to public auth endpoints to reduce brute-force / abuse
@@ -87,8 +88,9 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Admin Authentication Routes
-Route::post('/admin/login', [AdminAuthController::class, 'login']);
-Route::post('/admin/register', [AdminAuthController::class, 'register']); // For setup only
+// Apply throttling to admin auth endpoints to reduce brute-force attacks
+Route::post('/admin/login', [AdminAuthController::class, 'login'])->middleware('throttle:10,1');
+Route::post('/admin/register', [AdminAuthController::class, 'register'])->middleware('throttle:5,1'); // For setup only
 
 // Admin Protected Routes
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {

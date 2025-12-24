@@ -61,7 +61,13 @@ class GuardianAuthController extends Controller
             'password' => 'required|min:8',
         ]);
 
-        if (Auth::guard('guardian')->attempt($validated)) {
+        // Only use email and password for authentication attempt to avoid accidental SQL queries
+        $credentials = [
+            'email' => filter_var(trim($validated['email']), FILTER_SANITIZE_EMAIL),
+            'password' => $validated['password'],
+        ];
+
+        if (Auth::guard('guardian')->attempt($credentials)) {
             $guardian = Auth::guard('guardian')->user();
             // Create Sanctum token with explicit 'guardian' ability
             $token = $guardian->createToken('guardian-token', ['guardian'])->plainTextToken;

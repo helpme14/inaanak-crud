@@ -46,7 +46,17 @@ export default function NinongLogin() {
         navigate("/ninong/dashboard", { replace: true });
       }
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Login failed");
+      const msg = err?.response?.data?.message || "Login failed";
+      // If the failure is from reCAPTCHA verification, reset widget so user can re-solve
+      if (msg && /recaptcha|reCAPTCHA/i.test(msg)) {
+        try {
+          if (widgetIdRef.current !== null && window.grecaptcha?.reset) {
+            window.grecaptcha.reset(widgetIdRef.current);
+          }
+        } catch (_) {}
+        setCaptchaToken(null);
+      }
+      setError(msg);
     } finally {
       setLoading(false);
     }
