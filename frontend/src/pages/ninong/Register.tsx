@@ -96,16 +96,46 @@ export default function NinongRegister() {
       s.async = true;
       s.defer = true;
       s.onload = () => {
-        setTimeout(() => renderWidget(), 50);
+        try {
+          if (
+            window.grecaptcha &&
+            typeof window.grecaptcha.ready === "function"
+          ) {
+            window.grecaptcha.ready(() => renderWidget());
+          } else {
+            setTimeout(() => renderWidget(), 50);
+          }
+        } catch (_) {
+          setTimeout(() => renderWidget(), 50);
+        }
       };
       document.head.appendChild(s);
-    } else if (window.grecaptcha) {
-      setTimeout(() => renderWidget(), 50);
     } else {
-      const t = setTimeout(() => {
-        if (window.grecaptcha) renderWidget();
-      }, 200);
-      return () => clearTimeout(t);
+      if (window.grecaptcha) {
+        try {
+          if (typeof window.grecaptcha.ready === "function") {
+            window.grecaptcha.ready(() => renderWidget());
+          } else {
+            setTimeout(() => renderWidget(), 50);
+          }
+        } catch (_) {
+          setTimeout(() => renderWidget(), 50);
+        }
+      } else {
+        const t = setTimeout(() => {
+          try {
+            if (
+              window.grecaptcha &&
+              typeof window.grecaptcha.ready === "function"
+            ) {
+              window.grecaptcha.ready(() => renderWidget());
+            } else if (window.grecaptcha) {
+              renderWidget();
+            }
+          } catch (_) {}
+        }, 200);
+        return () => clearTimeout(t);
+      }
     }
 
     return () => {

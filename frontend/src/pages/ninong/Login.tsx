@@ -85,19 +85,49 @@ export default function NinongLogin() {
       s.async = true;
       s.defer = true;
       s.onload = () => {
-        // slight delay to ensure grecaptcha ready
-        setTimeout(() => renderWidget(), 50);
+        // prefer grecaptcha.ready when available
+        try {
+          if (
+            window.grecaptcha &&
+            typeof window.grecaptcha.ready === "function"
+          ) {
+            window.grecaptcha.ready(() => renderWidget());
+          } else {
+            setTimeout(() => renderWidget(), 50);
+          }
+        } catch (_) {
+          setTimeout(() => renderWidget(), 50);
+        }
       };
       document.head.appendChild(s);
-    } else if (window.grecaptcha) {
-      // render immediately if grecaptcha already present
-      setTimeout(() => renderWidget(), 50);
     } else {
-      // script present but grecaptcha not ready; wait briefly then try
-      const t = setTimeout(() => {
-        if (window.grecaptcha) renderWidget();
-      }, 200);
-      return () => clearTimeout(t);
+      // If grecaptcha is available and exposes ready(), use it; otherwise try to render after short delay
+      if (window.grecaptcha) {
+        try {
+          if (typeof window.grecaptcha.ready === "function") {
+            window.grecaptcha.ready(() => renderWidget());
+          } else {
+            setTimeout(() => renderWidget(), 50);
+          }
+        } catch (_) {
+          setTimeout(() => renderWidget(), 50);
+        }
+      } else {
+        // script present but grecaptcha not initialized yet — retry briefly
+        const t = setTimeout(() => {
+          try {
+            if (
+              window.grecaptcha &&
+              typeof window.grecaptcha.ready === "function"
+            ) {
+              window.grecaptcha.ready(() => renderWidget());
+            } else if (window.grecaptcha) {
+              renderWidget();
+            }
+          } catch (_) {}
+        }, 200);
+        return () => clearTimeout(t);
+      }
     }
 
     return () => {
