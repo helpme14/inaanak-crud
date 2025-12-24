@@ -23,12 +23,18 @@ class GuardianAuthController extends Controller
             'address' => 'required|string',
         ]);
 
+        // Sanitize user input to avoid stored XSS
+        $safeName = strip_tags(trim($validated['name']));
+        $safeEmail = filter_var(trim($validated['email']), FILTER_SANITIZE_EMAIL);
+        $safeContact = strip_tags(trim($validated['contact_number']));
+        $safeAddress = strip_tags(trim($validated['address']));
+
         $guardian = Guardian::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
+            'name' => $safeName,
+            'email' => $safeEmail,
             'password' => Hash::make($validated['password']),
-            'contact_number' => $validated['contact_number'],
-            'address' => $validated['address'],
+            'contact_number' => $safeContact,
+            'address' => $safeAddress,
         ]);
 
         // Generate token for immediate login after registration

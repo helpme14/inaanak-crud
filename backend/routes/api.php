@@ -15,8 +15,9 @@ Route::post('/guardian/register', [GuardianAuthController::class, 'register']);
 Route::post('/guardian/login', [GuardianAuthController::class, 'login']);
 
 // Ninong Authentication Routes (Public)
-Route::post('/ninong/register', [NinongAuthController::class, 'register']);
-Route::post('/ninong/login', [NinongAuthController::class, 'login']);
+// Add throttling to public auth endpoints to reduce brute-force / abuse
+Route::post('/ninong/register', [NinongAuthController::class, 'register'])->middleware('throttle:5,1');
+Route::post('/ninong/login', [NinongAuthController::class, 'login'])->middleware('throttle:10,1');
 
 // Ninong Email Verification Routes
 Route::get('/ninong/verify-email/{id}/{hash}', function (EmailVerificationRequest $request) {

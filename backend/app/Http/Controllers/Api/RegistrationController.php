@@ -125,13 +125,18 @@ class RegistrationController extends Controller
             ], 422);
         }
 
-        // Find or create guardian
+        // Find or create guardian. Sanitize input to reduce stored XSS risk.
+        $safeGuardianName = strip_tags(trim($validated['guardian_name']));
+        $safeGuardianEmail = filter_var(trim($validated['guardian_email']), FILTER_SANITIZE_EMAIL);
+        $safeGuardianContact = strip_tags(trim($validated['guardian_contact']));
+        $safeGuardianAddress = strip_tags(trim($validated['guardian_address']));
+
         $guardian = Guardian::firstOrCreate(
-            ['email' => $validated['guardian_email']],
+            ['email' => $safeGuardianEmail],
             [
-                'name' => $validated['guardian_name'],
-                'contact_number' => $validated['guardian_contact'],
-                'address' => $validated['guardian_address'],
+                'name' => $safeGuardianName,
+                'contact_number' => $safeGuardianContact,
+                'address' => $safeGuardianAddress,
                 'password' => bcrypt('default_password_' . uniqid()), // Temporary password
             ]
         );
@@ -172,13 +177,17 @@ class RegistrationController extends Controller
         $ninongId = $invite->ninong_id;
         $invite->increment('used_count');
 
+        // Sanitize registration fields
+        $safeInaanakName = strip_tags(trim($validated['inaanak_name']));
+        $safeRelationship = strip_tags(trim($validated['relationship']));
+
         $registration = Registration::create([
             'reference_number' => Registration::generateReferenceNumber(),
             'guardian_id' => $guardian->id,
             'ninong_id' => $ninongId,
-            'inaanak_name' => $validated['inaanak_name'],
+            'inaanak_name' => $safeInaanakName,
             'inaanak_birthdate' => $validated['inaanak_birthdate'],
-            'relationship' => $validated['relationship'],
+            'relationship' => $safeRelationship,
             'live_photo_path' => $livePhotoPath,
             'video_path' => $videoPath,
             'qr_code_path' => $qrCodePath,

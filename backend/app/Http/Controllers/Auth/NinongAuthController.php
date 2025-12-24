@@ -8,8 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-
 use App\Notifications\NinongVerifyCode;
+use Illuminate\Validation\Rules\Password;
 
 class NinongAuthController extends Controller
 {
@@ -18,25 +18,32 @@ class NinongAuthController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:ninongs',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()->symbols()],
         ]);
 
         DB::beginTransaction();
         try {
+            // Sanitize inputs to avoid stored XSS
+            $safeName = strip_tags(trim($validated['name']));
+            $safeEmail = filter_var(trim($validated['email']), FILTER_SANITIZE_EMAIL);
+
             $ninong = Ninong::create([
-                'name' => $validated['name'],
-                'email' => $validated['email'],
+                'name' => $safeName,
+                'email' => $safeEmail,
                 'password' => Hash::make($validated['password']),
             ]);
 
+            // Create token for client
             $token = $ninong->createToken('ninong-token', ['ninong'])->plainTextToken;
 
-            // Generate verification code and send via email
+            // Generate verification code and set expiry
             $code = (string) random_int(100000, 999999);
             $ninong->forceFill([
                 'verification_code' => Hash::make($code),
                 'verification_code_expires_at' => now()->addMinutes(10),
             ])->save();
+
+            // Send verification code notification
             $ninong->notify(new NinongVerifyCode($code));
 
             DB::commit();
@@ -50,11 +57,10 @@ class NinongAuthController extends Controller
                     'must_verify_email' => is_null($ninong->email_verified_at),
                 ]
             ], 201);
-
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::warning('Failed to register ninong', [
-                'email' => $validated['email'],
+                'email' => $validated['email'] ?? null,
                 'error' => $e->getMessage(),
             ]);
             return response()->json([

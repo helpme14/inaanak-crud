@@ -9,12 +9,12 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-red-50 to-green-50">
       {/* Navigation */}
-      <nav className="flex items-center justify-between px-6 py-4 sm:px-8 md:px-12">
+      <nav className="flex flex-col items-center px-6 py-4 sm:flex-row sm:justify-between sm:px-8 md:px-12">
         <div className="flex items-center gap-2">
           <Gift className="w-6 h-6 text-red-600" />
           <span className="text-xl font-bold text-gray-900">INAANAK</span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 mt-3 sm:mt-0">
           <button
             onClick={() => navigate("/ninong/login")}
             className="text-sm font-medium text-gray-700 transition-colors hover:text-gray-900"

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import ninongService from "../../services/ninong.service";
+import { containsHTML, sanitizeInput } from "../../lib/validations";
 
 export default function NinongRegister() {
   const navigate = useNavigate();
@@ -11,6 +12,8 @@ export default function NinongRegister() {
   const [password2, setPassword2] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [pwError, setPwError] = useState<string | null>(null);
+  const [xssWarning, setXssWarning] = useState({ name: false, email: false });
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,12 +21,26 @@ export default function NinongRegister() {
       setError("Passwords do not match");
       return;
     }
+
+    // Client-side password strength validation
+    const pwStrong = /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}/;
+    if (!pwStrong.test(password)) {
+      setPwError(
+        "Password must be at least 8 characters and include uppercase, lowercase, number and symbol."
+      );
+      return;
+    }
+    setPwError(null);
+
+    // sanitize inputs to avoid accidental HTML
+    const safeName = sanitizeInput(name);
+    const safeEmail = sanitizeInput(email);
     setLoading(true);
     setError(null);
     try {
       await ninongService.register({
-        name,
-        email,
+        name: safeName,
+        email: safeEmail,
         password,
         password_confirmation: password2,
       });
@@ -61,9 +78,23 @@ export default function NinongRegister() {
             <input
               className="w-full px-3 py-2 border rounded-lg"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (containsHTML(v)) {
+                  setXssWarning((s) => ({ ...s, name: true }));
+                  setName(sanitizeInput(v));
+                } else {
+                  setXssWarning((s) => ({ ...s, name: false }));
+                  setName(v);
+                }
+              }}
               required
             />
+            {xssWarning.name && (
+              <div className="mt-2 text-xs text-amber-700">
+                HTML tags are not allowed and were removed.
+              </div>
+            )}
           </div>
           <div>
             <label className="block mb-1 text-sm font-medium">Email</label>
@@ -71,9 +102,23 @@ export default function NinongRegister() {
               className="w-full px-3 py-2 border rounded-lg"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (containsHTML(v)) {
+                  setXssWarning((s) => ({ ...s, email: true }));
+                  setEmail(sanitizeInput(v));
+                } else {
+                  setXssWarning((s) => ({ ...s, email: false }));
+                  setEmail(v);
+                }
+              }}
               required
             />
+            {xssWarning.email && (
+              <div className="mt-2 text-xs text-amber-700">
+                HTML tags are not allowed and were removed.
+              </div>
+            )}
           </div>
           <div>
             <label className="block mb-1 text-sm font-medium">Password</label>
@@ -85,6 +130,9 @@ export default function NinongRegister() {
               required
               minLength={8}
             />
+            {pwError && (
+              <div className="mt-2 text-sm text-red-700">{pwError}</div>
+            )}
           </div>
           <div>
             <label className="block mb-1 text-sm font-medium">
