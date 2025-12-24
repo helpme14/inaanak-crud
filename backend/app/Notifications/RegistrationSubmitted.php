@@ -33,7 +33,13 @@ class RegistrationSubmitted extends Notification implements ShouldQueue
             ->line('')
             ->line('Our team will review your application and documents within 3-5 business days.')
             ->line('You will receive an email notification once the review is complete.')
-            ->action('View Registration Status', url('/registrations/' . $this->registration->id))
+            // Link to the frontend status page and prefill reference number (+ guardian email)
+            ->action(
+                'View Registration Status',
+                (env('FRONTEND_URL', 'http://localhost:5173'))
+                    . '/check-status?ref=' . urlencode($this->registration->reference_number)
+                    . '&email=' . urlencode($this->registration->guardian->email)
+            )
             ->line('Thank you for registering with INAANAK!')
             ->salutation('Best regards, INAANAK Team')
             ->line('© 2025 GIOSICAT. All rights reserved.');

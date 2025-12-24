@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   ArrowLeft,
   Search,
@@ -21,6 +21,43 @@ export default function CheckStatus() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searched, setSearched] = useState(false);
+
+  const location = useLocation();
+
+  // If the email link includes query params like ?ref=...&email=..., prefill and auto-search
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const ref = params.get("ref") || "";
+    const preEmail = params.get("email") || "";
+
+    if (ref) setReferenceNumber(ref.toUpperCase());
+    if (preEmail) setEmail(preEmail);
+
+    // Auto-run search only if both ref and email are present
+    if (ref && preEmail) {
+      (async () => {
+        setLoading(true);
+        setError(null);
+        setSearched(true);
+        try {
+          const data = await statusService.checkStatus(ref, preEmail);
+          setResult(data);
+        } catch (err: any) {
+          if (err.response?.status === 404) {
+            setError(
+              "Registration not found. Please check your reference number."
+            );
+          } else {
+            setError(err?.response?.data?.message || "Failed to check status");
+          }
+          setResult(null);
+        } finally {
+          setLoading(false);
+        }
+      })();
+    }
+    // Only run on mount / location change
+  }, [location.search]);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
