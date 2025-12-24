@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use App\Notifications\NinongVerifyCode;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Http\Client\Response as HttpResponse;
 
 class NinongAuthController extends Controller
 {
@@ -75,7 +76,54 @@ class NinongAuthController extends Controller
         $validated = $request->validate([
             'email' => 'required|email',
             'password' => 'required|min:8',
+            'recaptcha_token' => 'required|string',
         ]);
+
+        // Verify Google reCAPTCHA
+        // Read the secret from config (works with config caching). Fall back to env lookups.
+        $secret = config('services.recaptcha.secret') ?: env('RECAPTCHA_SECRET') ?: getenv('RECAPTCHA_SECRET') ?: ($_ENV['RECAPTCHA_SECRET'] ?? null) ?: ($_SERVER['RECAPTCHA_SECRET'] ?? null);
+        if (!$secret) {
+            return response()->json([
+                'success' => false,
+                'message' => 'reCAPTCHA not configured on server.'
+            ], 500);
+        }
+
+        // log presence for debugging (do not log the actual secret)
+        try {
+            \Illuminate\Support\Facades\Log::debug('reCAPTCHA secret present: ' . ($secret ? 'yes' : 'no'));
+        } catch (\Throwable $__e) {
+            // ignore logging errors
+        }
+
+        try {
+            /** @var HttpResponse $resp */
+            $resp = \Illuminate\Support\Facades\Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                'secret' => $secret,
+                'response' => $validated['recaptcha_token'],
+                'remoteip' => $request->ip(),
+            ]);
+
+            // Use the Response helper methods (json/body) - typed above for static analyzers
+            try {
+                $body = $resp->json();
+            } catch (\Throwable $e) {
+                $body = json_decode((string) $resp->body(), true);
+            }
+
+            if (!is_array($body) || !isset($body['success']) || !$body['success']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'reCAPTCHA verification failed. Please try again.'
+                ], 422);
+            }
+        } catch (\Throwable $e) {
+            // treat verification failure as error
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to verify reCAPTCHA.'
+            ], 422);
+        }
 
         $user = Ninong::where('email', $validated['email'])->first();
         if ($user && Hash::check($validated['password'], $user->password)) {

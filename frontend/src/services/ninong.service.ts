@@ -5,11 +5,13 @@ export interface NinongRegisterData {
   email: string;
   password: string;
   password_confirmation: string;
+  recaptcha_token?: string;
 }
 
 export interface NinongLoginData {
   email: string;
   password: string;
+  recaptcha_token?: string;
 }
 
 export interface NinongAuthResponse {

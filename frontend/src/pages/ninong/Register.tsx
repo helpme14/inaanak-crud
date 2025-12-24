@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import ninongService from "../../services/ninong.service";
@@ -14,6 +14,9 @@ export default function NinongRegister() {
   const [loading, setLoading] = useState(false);
   const [pwError, setPwError] = useState<string | null>(null);
   const [xssWarning, setXssWarning] = useState({ name: false, email: false });
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const captchaRef = useRef<HTMLDivElement | null>(null);
+  const widgetIdRef = useRef<number | null>(null);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +38,16 @@ export default function NinongRegister() {
     // sanitize inputs to avoid accidental HTML
     const safeName = sanitizeInput(name);
     const safeEmail = sanitizeInput(email);
+    // ensure captcha token is present
+    let token = captchaToken;
+    if (!token && window.grecaptcha && widgetIdRef.current !== null) {
+      token = window.grecaptcha.getResponse(widgetIdRef.current);
+    }
+
+    if (!token) {
+      setError("Please complete the reCAPTCHA to prove you are not a robot.");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -43,6 +56,7 @@ export default function NinongRegister() {
         email: safeEmail,
         password,
         password_confirmation: password2,
+        recaptcha_token: token ?? undefined,
       });
       navigate("/ninong/dashboard", { replace: true });
     } catch (err: any) {
@@ -51,6 +65,58 @@ export default function NinongRegister() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+    if (!siteKey) return;
+    const scriptSrc = "https://www.google.com/recaptcha/api.js?render=explicit";
+    const existing = document.querySelector(`script[src="${scriptSrc}"]`);
+
+    const renderWidget = () => {
+      try {
+        if (!captchaRef.current) return;
+        captchaRef.current.innerHTML = "";
+        if (widgetIdRef.current !== null && window.grecaptcha?.reset) {
+          try {
+            window.grecaptcha.reset(widgetIdRef.current);
+          } catch (_) {}
+        }
+        widgetIdRef.current = window.grecaptcha.render(captchaRef.current, {
+          sitekey: siteKey,
+          callback: (t: string) => setCaptchaToken(t),
+        });
+      } catch (e) {
+        // ignore
+      }
+    };
+
+    if (!existing) {
+      const s = document.createElement("script");
+      s.src = scriptSrc;
+      s.async = true;
+      s.defer = true;
+      s.onload = () => {
+        setTimeout(() => renderWidget(), 50);
+      };
+      document.head.appendChild(s);
+    } else if (window.grecaptcha) {
+      setTimeout(() => renderWidget(), 50);
+    } else {
+      const t = setTimeout(() => {
+        if (window.grecaptcha) renderWidget();
+      }, 200);
+      return () => clearTimeout(t);
+    }
+
+    return () => {
+      try {
+        if (widgetIdRef.current !== null && window.grecaptcha?.reset) {
+          window.grecaptcha.reset(widgetIdRef.current);
+        }
+      } catch (_) {}
+      widgetIdRef.current = null;
+    };
+  }, []);
 
   return (
     <div className="flex items-center justify-center min-h-screen p-4 bg-gradient-to-br from-amber-50 via-red-50 to-green-50">
@@ -147,6 +213,7 @@ export default function NinongRegister() {
               minLength={8}
             />
           </div>
+          <div className="mt-3" ref={captchaRef} />
           <button
             className="w-full py-2 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700"
             disabled={loading}
