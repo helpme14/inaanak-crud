@@ -18,7 +18,43 @@ class AdminAuthController extends Controller
         $validated = $request->validate([
             'email' => 'required|email',
             'password' => 'required|min:6',
+            'recaptcha_token' => 'required|string',
         ]);
+
+        // Verify Google reCAPTCHA similar to other auth flows
+        $secret = config('services.recaptcha.secret') ?: env('RECAPTCHA_SECRET') ?: getenv('RECAPTCHA_SECRET') ?: ($_ENV['RECAPTCHA_SECRET'] ?? null) ?: ($_SERVER['RECAPTCHA_SECRET'] ?? null);
+        if (!$secret) {
+            return response()->json([
+                'success' => false,
+                'message' => 'reCAPTCHA not configured on server.'
+            ], 500);
+        }
+
+        try {
+            $resp = \Illuminate\Support\Facades\Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                'secret' => $secret,
+                'response' => $validated['recaptcha_token'],
+                'remoteip' => $request->ip(),
+            ]);
+
+            try {
+                $body = $resp->json();
+            } catch (\Throwable $e) {
+                $body = json_decode((string) $resp->body(), true);
+            }
+
+            if (!is_array($body) || !isset($body['success']) || !$body['success']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'reCAPTCHA verification failed. Please try again.'
+                ], 422);
+            }
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to verify reCAPTCHA.'
+            ], 422);
+        }
 
         if (Auth::guard('admin')->attempt($validated)) {
             $admin = Auth::guard('admin')->user();
