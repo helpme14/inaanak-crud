@@ -36,6 +36,6 @@ class RegistrationSubmitted extends Notification implements ShouldQueue
             ->action('View Registration Status', url('/registrations/' . $this->registration->id))
             ->line('Thank you for registering with INAANAK!')
             ->salutation('Best regards, INAANAK Team')
-            ->footer('© 2025 GIOSICAT. All rights reserved.');
+            ->line('© 2025 GIOSICAT. All rights reserved.');
     }
 }
