@@ -112,7 +112,15 @@ export default function Landing() {
               Check Status
             </button>
             <button
-              onClick={() => navigate("/ninong/dashboard")}
+              onClick={() => {
+                const userType = localStorage.getItem("user_type");
+                const token = localStorage.getItem("auth_token");
+                if (userType === "ninong" && token) {
+                  navigate("/ninong/dashboard");
+                } else {
+                  navigate("/ninong/login");
+                }
+              }}
               className="px-8 py-3 font-semibold text-white transition-all rounded-full shadow-lg bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:shadow-xl"
             >
               Ninong Dashboard

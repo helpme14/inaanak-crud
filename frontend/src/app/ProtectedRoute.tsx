@@ -13,7 +13,14 @@ export function ProtectedRoute({
   const isAuthenticated = authService.isAuthenticated();
 
   if (!isAuthenticated) {
-    return <Navigate to="/admin/login" replace />;
+    // Redirect unauthenticated users to the login page matching the required role
+    const loginPath =
+      requiredRole === "ninong"
+        ? "/ninong/login"
+        : requiredRole === "guardian"
+        ? "/"
+        : "/admin/login";
+    return <Navigate to={loginPath} replace />;
   }
 
   if (requiredRole === "admin" && !authService.isAdmin()) {
