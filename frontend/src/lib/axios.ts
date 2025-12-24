@@ -40,7 +40,9 @@ api.interceptors.response.use(
         );
       const isOnLoginPage =
         typeof window !== "undefined" &&
-        window.location?.pathname === "/admin/login";
+        (window.location?.pathname === "/admin/login" ||
+          window.location?.pathname === "/ninong/login");
+          // window.location?.pathname === "/guardian/login");
 
       if (!isAuthEndpoint && !isOnLoginPage) {
         const userType = localStorage.getItem("user_type");
@@ -65,7 +67,9 @@ api.interceptors.response.use(
         );
       const isOnLoginPage =
         typeof window !== "undefined" &&
-        window.location?.pathname === "/admin/login";
+        (window.location?.pathname === "/admin/login" ||
+          window.location?.pathname === "/ninong/login" );
+          // window.location?.pathname === "/guardian/login");
 
       // Don't logout on 403 for ninong verification routes - they need auth but not verified
       const isUnverifiedNinongRoute = /\/ninong\/(invites|registrations)/.test(

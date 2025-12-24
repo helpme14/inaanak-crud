@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../../lib/axios";
 import ninongService from "../../services/ninong.service";
 
 export default function NinongDashboard() {
+  const navigate = useNavigate();
   const [mustVerify, setMustVerify] = useState(false);
   const [sending, setSending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
@@ -64,12 +65,33 @@ export default function NinongDashboard() {
             <h1 className="text-2xl font-bold text-gray-900">
               Ninong Dashboard
             </h1>
-            <a
-              href="/"
-              className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg shadow-sm hover:text-gray-900 hover:border-gray-300"
-            >
-              Home
-            </a>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate("/")}
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg shadow-sm hover:text-gray-900 hover:border-gray-300"
+                title="Go to home"
+              >
+                Home
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    await api.post("/ninong/logout");
+                  } catch (_) {
+                    // ignore network errors, still clear local session
+                  } finally {
+                    localStorage.removeItem("auth_token");
+                    localStorage.removeItem("user");
+                    localStorage.removeItem("user_type");
+                    navigate("/ninong/login");
+                  }
+                }}
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg shadow-sm hover:text-gray-900 hover:border-gray-300"
+                title="Log out"
+              >
+                Logout
+              </button>
+            </div>
           </div>
           <p className="mb-6 text-gray-600">
             Monitor your invites and registrations.
