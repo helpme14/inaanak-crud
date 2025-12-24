@@ -5,11 +5,10 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Ninong;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Facades\Hash as FacadesHash;
+
 use App\Notifications\NinongVerifyCode;
 
 class NinongAuthController extends Controller
@@ -22,50 +21,50 @@ class NinongAuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        $ninong = Ninong::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-        ]);
-
-        $token = $ninong->createToken('ninong-token', ['ninong'])->plainTextToken;
-
-        // Generate verification code and send via email
+        DB::beginTransaction();
         try {
+            $ninong = Ninong::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+            ]);
+
+            $token = $ninong->createToken('ninong-token', ['ninong'])->plainTextToken;
+
+            // Generate verification code and send via email
             $code = (string) random_int(100000, 999999);
             $ninong->forceFill([
                 'verification_code' => Hash::make($code),
                 'verification_code_expires_at' => now()->addMinutes(10),
             ])->save();
             $ninong->notify(new NinongVerifyCode($code));
-        } catch (\Throwable $e) {
-            Log::warning('Failed to generate/send ninong verification code', [
-                'ninong_id' => $ninong->id,
-                'email' => $ninong->email,
-                'error' => $e->getMessage(),
-            ]);
-        }
 
-        // Also send link-based verification as fallback
-        try {
+            // Also send link-based verification as fallback
             $ninong->sendEmailVerificationNotification();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Ninong registered successfully. Please verify your email.',
+                'data' => [
+                    'ninong' => $ninong,
+                    'token' => $token,
+                    'must_verify_email' => is_null($ninong->email_verified_at),
+                ]
+            ], 201);
+
         } catch (\Throwable $e) {
-            Log::warning('Failed to send ninong verification email', [
-                'ninong_id' => $ninong->id,
-                'email' => $ninong->email,
+            DB::rollBack();
+            Log::warning('Failed to register ninong', [
+                'email' => $validated['email'],
                 'error' => $e->getMessage(),
             ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Registration failed. Please try again.',
+            ], 500);
         }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Ninong registered successfully. Please verify your email.',
-            'data' => [
-                'ninong' => $ninong,
-                'token' => $token,
-                'must_verify_email' => is_null($ninong->email_verified_at),
-            ]
-        ], 201);
     }
 
     public function login(Request $request)
