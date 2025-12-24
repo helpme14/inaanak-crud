@@ -77,7 +77,7 @@ export default function NinongInvites() {
               <ArrowLeft className="w-4 h-4" /> Back to Dashboard
             </button>
             <h1 className="text-xl font-bold text-gray-900">My Invites</h1>
-            <div className="w-[140px]" />
+            <div className="hidden sm:block sm:w-36" />
           </div>
           <div className="p-6">
             <p className="mb-6 text-gray-600">

@@ -87,7 +87,7 @@ export function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
   };
 
   return (
-    <div className="fixed z-50 max-w-md space-y-3 pointer-events-none top-6 right-6">
+    <div className="fixed z-50 max-w-md space-y-3 pointer-events-none bottom-4 left-4 sm:top-6 sm:right-6 sm:bottom-auto sm:left-auto">
       {toasts.map((toast) => (
         <div
           key={toast.id}

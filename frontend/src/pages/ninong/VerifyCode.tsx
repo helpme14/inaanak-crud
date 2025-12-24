@@ -48,7 +48,7 @@ export default function NinongVerifyCode() {
             <ArrowLeft className="w-4 h-4" /> Back to Dashboard
           </button>
           <h1 className="text-xl font-bold text-gray-900">Verify Email</h1>
-          <div className="w-[120px]" />
+          <div className="hidden sm:block sm:w-32" />
         </div>
         <div className="p-6">
           <p className="text-gray-600 mb-6">
